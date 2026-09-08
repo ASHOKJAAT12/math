@@ -21,7 +21,7 @@ export const PerformanceCard = ({ title, methodNode, icon }) => {
     );
 };
 
-const MethodRanking = ({ rankings }) => {
+const MethodRanking = ({ rankings, category }) => {
     if (!rankings) return null;
 
     const renderMethodValue = (method, propertyName, suffix = '') => {
@@ -38,20 +38,25 @@ const MethodRanking = ({ rankings }) => {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <PerformanceCard
-                title="Fastest Convergence"
-                methodNode={renderMethodValue(rankings.fastestConvergence, 'iterations', ' iterations')}
-            />
+            {rankings.categorySpecific && (
+                <PerformanceCard
+                    title={rankings.categorySpecific.title}
+                    methodNode={renderMethodValue(rankings.categorySpecific.method, rankings.categorySpecific.param, rankings.categorySpecific.suffix)}
+                />
+            )}
+
             <PerformanceCard
                 title="Fastest Execution"
                 methodNode={renderMethodValue(rankings.fastestExecution, 'executionTime', ' ms')}
             />
+            {rankings.lowestErrorMetric && (
+                <PerformanceCard
+                    title={rankings.lowestErrorMetric}
+                    methodNode={renderMethodValue(rankings.lowestError, rankings.lowestErrorMetric === 'Lowest Absolute Error' ? 'absoluteError' : 'finalError')}
+                />
+            )}
             <PerformanceCard
-                title={rankings.lowestErrorMetric || "Lowest Error"}
-                methodNode={renderMethodValue(rankings.lowestError, rankings.lowestErrorMetric === 'Absolute Error (Exact Root)' ? 'absoluteError' : 'finalError')}
-            />
-            <PerformanceCard
-                title="Most Successful"
+                title="Successful Methods"
                 methodNode={
                     rankings.mostSuccessful && rankings.mostSuccessful.length > 0 ? (
                         <div className="flex flex-wrap gap-1 mt-1">

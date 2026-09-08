@@ -8,7 +8,7 @@ import { calculateAbsoluteError, calculateRelativeError, calculatePercentageErro
  */
 export const compareRootFindingMethods = (methods, inputs) => {
     const selectedMethods = methods.filter(m => m.selected);
-    if (selectedMethods.length < 2) return { error: "Select at least two methods to perform a comparison." };
+    if (selectedMethods.length < 1) return { error: "Select at least one method to perform a comparison." };
 
     let f, fPrime;
     try {
@@ -75,7 +75,7 @@ export const compareRootFindingMethods = (methods, inputs) => {
         results[method.id] = normalizeResult(method.id, method.name, result, exactRoot);
     });
 
-    return { data: results, exactRootAvailable: exactRoot !== null };
+    return { data: results, hasExactReference: exactRoot !== null };
 };
 
 const normalizeResult = (id, name, result, exactRoot) => {
@@ -132,6 +132,8 @@ const normalizeResult = (id, name, result, exactRoot) => {
         percentageError: percError,
         executionTime,
         message,
-        steps
+        steps,
+        resultValue: root,
+        resultParam: iterations // to use generically in tables
     };
 };

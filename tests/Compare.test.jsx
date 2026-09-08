@@ -37,10 +37,10 @@ describe('Root Finding Comparison Logic', () => {
         // Ensure no absolute error calculations leaked if exact root wasn't provided
         expect(result.data['bisection'].absoluteError).toBe(null);
 
-        const ranks = rankMethods(result.data);
-        expect(ranks.fastestConvergence).toBeDefined();
+        const ranks = rankMethods(result.data, 'rootFinding');
+        expect(ranks.categorySpecific).toBeDefined();
         // Bisection on (1,3) perfectly hits 2 in iteration 1
-        expect(ranks.fastestConvergence.id).toBe('bisection');
+        expect(ranks.categorySpecific.method.id).toBe('bisection');
     });
 
     it('calculates absolute error when exact root provided mathematically', () => {
@@ -64,16 +64,14 @@ describe('Root Finding Comparison Logic', () => {
         expect(result.data['bisection'].absoluteError).not.toBeNull();
         expect(result.data['newtonRaphson'].absoluteError).not.toBeNull();
 
-        const ranks = rankMethods(result.data);
-        expect(ranks.lowestErrorMetric).toBe('Absolute Error (Exact Root)');
+        const ranks = rankMethods(result.data, 'rootFinding');
+        expect(ranks.lowestErrorMetric).toBe('Lowest Absolute Error');
     });
 
-    it('requires at least two methods to execute comparing', () => {
-        const methods = [
-            { id: 'bisection', name: 'Bisection', selected: true }
-        ];
+    it('requires at least one method to execute comparing', () => {
+        const methods = [];
         const result = compareRootFindingMethods(methods, {});
-        expect(result.error).toBe('Select at least two methods to perform a comparison.');
+        expect(result.error).toBe('Select at least one method to perform a comparison.');
     });
 
     it('gracefully notes numerical failures rather than throwing fatal JS errors', () => {

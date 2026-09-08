@@ -4,11 +4,14 @@ import SectionHeader from '../components/common/SectionHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import { ChartCard, ConvergenceLineChart } from '../components/charts';
 
 import { bisection, regulaFalsi, newtonRaphson, secant, rootFindingMetadata } from '../methods/rootFinding/index.js';
 import { createEvaluator } from '../utils/evaluator.js';
+import { createConvergenceDataset } from '../utils/chartData.js';
 import { rootFindingPresets } from '../data/rootFindingPresets.js';
 import { formatNumber } from '../utils/formatters.js';
+import { saveCalculation } from '../utils/historyManager.js';
 
 const INITIAL_STATE = {
     func: '',
@@ -68,6 +71,34 @@ const RootFinding = () => {
         setInputs(INITIAL_STATE);
         setErrors({});
         setRunResult(null);
+    };
+
+    const handleSave = () => {
+        if (!runResult) return;
+        const dataToSave = {
+            category: 'Root Finding',
+            operation: currentMetadata.name,
+            input: { ...inputs },
+            methods: [currentMetadata.id],
+            resultSummary: {
+                method: runResult.method,
+                root: runResult.root,
+                error: runResult.error,
+                iterations: runResult.iterations,
+                converged: runResult.converged,
+                executionTime: runResult.executionTime
+            },
+            detailedResults: {
+                [currentMetadata.id]: {
+                    ...runResult,
+                    name: currentMetadata.name,
+                    valid: runResult.root !== null || runResult.converged
+                }
+            }
+        };
+
+        const res = saveCalculation(dataToSave);
+        alert(res.message);
     };
 
     const validateInputs = () => {
@@ -334,14 +365,21 @@ const RootFinding = () => {
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 <div className="flex justify-between items-center pb-2 border-b border-green-100 dark:border-green-900/30">
-                                    <span className="text-sm font-medium text-slate-500">Status</span>
-                                    {getStatusBadge(runResult)}
-                                </div>
-                                <div className="flex justify-between items-center pb-2 border-b border-green-100 dark:border-green-900/30">
                                     <span className="text-sm font-medium text-slate-500">Approx. Root</span>
                                     <span className="text-base font-bold text-green-700 dark:text-green-400">
                                         {runResult.root !== null ? formatNumber(runResult.root) : '---'}
                                     </span>
+                                </div>
+                                <div className="flex justify-between items-center pb-2 border-b border-green-100 dark:border-green-900/30">
+                                    <span className="text-sm font-medium text-slate-500">Convergence</span>
+                                    <Badge variant={runResult.converged ? 'success' : 'destructive'} size="lg">
+                                        {runResult.converged ? 'Converged' : 'Passed Max Iterations'}
+                                    </Badge>
+                                </div>
+                                <div className="pt-2">
+                                    <Button variant="outline" onClick={handleSave} className="w-full">
+                                        Save Result
+                                    </Button>
                                 </div>
                                 <div className="flex justify-between items-center pb-2 border-b border-green-100 dark:border-green-900/30">
                                     <span className="text-sm font-medium text-slate-500">Iterations</span>
@@ -457,6 +495,22 @@ const RootFinding = () => {
                         </table>
                     </div>
                 </Card>
+            )}
+
+            {/* Convergence Chart below table */}
+            {runResult && runResult.steps.length > 0 && (
+                <div className="mt-6 md:col-span-2">
+                    <ChartCard
+                        title="Convergence Trace"
+                        description="Visual trace of Error Limits across numerical iterations"
+                        isEmpty={false}
+                    >
+                        <ConvergenceLineChart
+                            data={createConvergenceDataset({ [selectedMethodId]: { ...runResult, valid: true } }, [{ id: selectedMethodId, name: currentMetadata.name }])}
+                            selectedMethods={[{ id: selectedMethodId, name: currentMetadata.name }]}
+                        />
+                    </ChartCard>
+                </div>
             )}
 
         </PageContainer>

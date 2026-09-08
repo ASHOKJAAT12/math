@@ -1,77 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PageContainer from '../components/layout/PageContainer';
 import SectionHeader from '../components/common/SectionHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 
+// Config Components
+import RootFindingConfig from '../components/comparison/config/RootFindingConfig';
+import IntegrationConfig from '../components/comparison/config/IntegrationConfig';
+import DifferentiationConfig from '../components/comparison/config/DifferentiationConfig';
+
+// Metadata
 import { rootFindingMetadata } from '../methods/rootFinding/index.js';
-import { rootFindingPresets } from '../data/rootFindingPresets.js';
+import { integrationMetadata } from '../methods/integration/index.js';
+import { diffMetadata } from '../methods/differentiation/index.js';
+
+// Comparison Executors
 import { compareRootFindingMethods } from '../comparison/rootFindingComparison.js';
+import { compareIntegrationMethods } from '../comparison/integrationComparison.js';
+import { compareDifferentiationMethods } from '../comparison/differentiationComparison.js';
+
 import { rankMethods } from '../comparison/ranking.js';
 import { buildConvergenceData } from '../comparison/convergence.js';
 
+// Generic Comparison UI
 import ComparisonSummary from '../components/comparison/ComparisonSummary';
 import MethodRanking from '../components/comparison/MethodRanking';
 import ComparisonTable from '../components/comparison/ComparisonTable';
-import { ConvergenceChart, IterationChart, TimeChart, ErrorChart } from '../components/comparison/ChartComponents';
+import { ChartCard, ConvergenceLineChart, MethodComparisonBarChart, PerformanceChart, ErrorComparisonChart } from '../components/charts';
+import { createConvergenceDataset, createIterationDataset, createPerformanceDataset, createErrorDataset, createValueComparisonDataset } from '../utils/chartData.js';
 import { formatNumber } from '../utils/formatters.js';
+import { saveCalculation } from '../utils/historyManager.js';
+
+const CATEGORIES = {
+    ROOT_FINDING: 'rootFinding',
+    INTEGRATION: 'integration',
+    DIFFERENTIATION: 'differentiation'
+};
 
 const INITIAL_INPUTS = {
-    func: '',
-    deriv: '',
-    lowerBound: '',
-    upperBound: '',
-    initialGuess: '',
-    secondGuess: '',
-    exactRoot: '',
-    tolerance: '1e-6',
-    maxIterations: '50'
+    [CATEGORIES.ROOT_FINDING]: { func: '', deriv: '', lowerBound: '', upperBound: '', initialGuess: '', secondGuess: '', exactRoot: '', tolerance: '1e-6', maxIterations: '50' },
+    [CATEGORIES.INTEGRATION]: { func: '', a: '', b: '', n: '10', exactValue: '' },
+    [CATEGORIES.DIFFERENTIATION]: { func: '', x: '', h: '0.1', exactDerivative: '', customHList: '' }
 };
 
 const Compare = () => {
-    // 1. Setup states
-    const [inputs, setInputs] = useState(INITIAL_INPUTS);
-    const [methods, setMethods] = useState(
-        rootFindingMetadata.map(m => ({ ...m, selected: true }))
-    );
-    const [isCalculating, setIsCalculating] = useState(false);
+    const [activeCategory, setActiveCategory] = useState(CATEGORIES.ROOT_FINDING);
 
-    // Results
+    // Config state
+    const [inputs, setInputs] = useState(INITIAL_INPUTS[CATEGORIES.ROOT_FINDING]);
+    const [methods, setMethods] = useState(rootFindingMetadata.map(m => ({ ...m, selected: true })));
+
+    // Execution state
+    const [isCalculating, setIsCalculating] = useState(false);
     const [comparisonResult, setComparisonResult] = useState(null);
     const [rankings, setRankings] = useState(null);
     const [convergenceData, setConvergenceData] = useState([]);
-
     const [expandedMethod, setExpandedMethod] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
 
-    // 2. Handlers
+    // Handle Category Switch
+    const changeCategory = (cat) => {
+        if (cat === activeCategory) return;
+        setActiveCategory(cat);
+        setInputs(INITIAL_INPUTS[cat]);
+
+        let newMethods = [];
+        if (cat === CATEGORIES.ROOT_FINDING) newMethods = rootFindingMetadata;
+        if (cat === CATEGORIES.INTEGRATION) newMethods = integrationMetadata;
+        if (cat === CATEGORIES.DIFFERENTIATION) newMethods = diffMetadata;
+
+        setMethods(newMethods.map(m => ({ ...m, selected: true })));
+
+        // Clear stale results
+        handleClear();
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setInputs(prev => ({ ...prev, [name]: value }));
         setErrorMsg(null);
-    };
-
-    const handlePresetChange = (e) => {
-        const presetName = e.target.value;
-        if (!presetName) return;
-
-        const preset = rootFindingPresets.find(p => p.name === presetName);
-        if (preset) {
-            setInputs({
-                ...inputs,
-                func: preset.func,
-                deriv: preset.deriv,
-                lowerBound: preset.lowerBound,
-                upperBound: preset.upperBound,
-                initialGuess: preset.initialGuess,
-                secondGuess: preset.secondGuess,
-                tolerance: preset.tolerance,
-                maxIterations: preset.maxIterations,
-                exactRoot: preset.exactRoot || '' // Optional exact root in preset
-            });
-            setErrorMsg(null);
-        }
     };
 
     const toggleMethod = (id) => {
@@ -82,43 +90,6 @@ const Compare = () => {
         setMethods(prev => prev.map(m => ({ ...m, selected: state })));
     };
 
-    const handleCompare = () => {
-        setErrorMsg(null);
-        setComparisonResult(null);
-        setIsCalculating(true);
-
-        setTimeout(() => {
-            const selectedCount = methods.filter(m => m.selected).length;
-            if (selectedCount < 2) {
-                setErrorMsg("Select at least two methods to perform a comparison.");
-                setIsCalculating(false);
-                return;
-            }
-
-            const payloadConfig = compareRootFindingMethods(methods, inputs);
-
-            if (payloadConfig.error) {
-                setErrorMsg(payloadConfig.error);
-                setIsCalculating(false);
-                return;
-            }
-
-            const { data, exactRootAvailable } = payloadConfig;
-
-            // Build Ranking
-            const calculatedRanks = rankMethods(data);
-            if (calculatedRanks.error && Object.keys(calculatedRanks).length === 1) {
-                setErrorMsg("All selected methods failed during numerical execution! Check bounds and function.");
-            }
-
-            setRankings(calculatedRanks);
-            setConvergenceData(buildConvergenceData(data));
-            setComparisonResult(payloadConfig);
-            setExpandedMethod(null);
-            setIsCalculating(false);
-        }, 50); // tiny async yield for UI "running" button state
-    };
-
     const handleClear = () => {
         setComparisonResult(null);
         setRankings(null);
@@ -127,68 +98,129 @@ const Compare = () => {
         setErrorMsg(null);
     };
 
+    const handleSave = () => {
+        if (!comparisonResult) return;
+
+        let operationName = 'Compare ';
+        if (activeCategory === CATEGORIES.ROOT_FINDING) operationName += 'Root Finding Methods';
+        if (activeCategory === CATEGORIES.INTEGRATION) operationName += 'Numerical Integration Methods';
+        if (activeCategory === CATEGORIES.DIFFERENTIATION) operationName += 'Multi-h Analysis';
+
+        const dataToSave = {
+            category: 'Comparison',
+            operation: operationName,
+            input: { ...inputs },
+            methods: methods.filter(m => m.selected).map(m => m.id),
+            resultSummary: {
+                bestMethod: rankings?.overallRanking?.[0]?.name || 'N/A',
+                methodsCompared: methods.filter(m => m.selected).length
+            },
+            detailedResults: comparisonResult.data,
+            hasExact: comparisonResult.hasExactReference
+        };
+        const res = saveCalculation(dataToSave);
+        alert(res.message);
+    };
+
+    const handleCompare = () => {
+        setErrorMsg(null);
+        setComparisonResult(null);
+        setIsCalculating(true);
+
+        setTimeout(() => {
+            const selectedCount = methods.filter(m => m.selected).length;
+            if (selectedCount < 1) {
+                setErrorMsg("Select at least one method to perform a comparison.");
+                setIsCalculating(false);
+                return;
+            }
+
+            let payloadConfig;
+
+            if (activeCategory === CATEGORIES.ROOT_FINDING) {
+                payloadConfig = compareRootFindingMethods(methods, inputs);
+            } else if (activeCategory === CATEGORIES.INTEGRATION) {
+                payloadConfig = compareIntegrationMethods(methods, inputs);
+            } else if (activeCategory === CATEGORIES.DIFFERENTIATION) {
+                payloadConfig = compareDifferentiationMethods(methods, inputs);
+            }
+
+            if (payloadConfig.error) {
+                setErrorMsg(payloadConfig.error);
+                setIsCalculating(false);
+                return;
+            }
+
+            const { data, hasExactReference } = payloadConfig;
+
+            // Build Ranking
+            const calculatedRanks = rankMethods(data, activeCategory);
+            // Verify if all failed
+            const areAllInvalid = Object.values(data).every(m => !m.valid || (m.status && m.status !== 'Converged' && m.status !== 'success'));
+
+            if (areAllInvalid && activeCategory === CATEGORIES.ROOT_FINDING) {
+                setErrorMsg("All selected methods failed during numerical execution! Check bounds and function.");
+            }
+
+            setRankings(calculatedRanks);
+            if (activeCategory === CATEGORIES.ROOT_FINDING) {
+                setConvergenceData(buildConvergenceData(data));
+            } else {
+                setConvergenceData([]);
+            }
+
+            setComparisonResult({ ...payloadConfig, category: activeCategory });
+            setExpandedMethod(null);
+            setIsCalculating(false);
+        }, 50);
+    };
+
     return (
         <PageContainer>
             <SectionHeader
-                title="Method Comparison & Convergence Analysis"
-                description="Objectively pit root finding algorithms against identical configurations to judge efficiency, processing speeds, and convergence limits."
+                title="Unified Methods Comparison Dashboard"
+                description="Objectively compare numerical algorithms across Root Finding, Integration, and Differentiation."
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
+            {/* Category Selector */}
+            <div className="flex flex-wrap gap-2 mb-6 justify-center">
+                <Button
+                    variant={activeCategory === CATEGORIES.ROOT_FINDING ? 'primary' : 'outline'}
+                    onClick={() => changeCategory(CATEGORIES.ROOT_FINDING)}
+                >
+                    Root Finding
+                </Button>
+                <Button
+                    variant={activeCategory === CATEGORIES.INTEGRATION ? 'primary' : 'outline'}
+                    onClick={() => changeCategory(CATEGORIES.INTEGRATION)}
+                >
+                    Numerical Integration
+                </Button>
+                <Button
+                    variant={activeCategory === CATEGORIES.DIFFERENTIATION ? 'primary' : 'outline'}
+                    onClick={() => changeCategory(CATEGORIES.DIFFERENTIATION)}
+                >
+                    Numerical Differentiation
+                </Button>
+            </div>
 
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
                 {/* Side Config Panel */}
                 <div className="lg:col-span-1 space-y-4">
                     <Card>
                         <CardHeader className="pb-3 text-sm">
-                            <CardTitle>Global Input Configuration</CardTitle>
+                            <CardTitle>Problem Configuration</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <select
-                                className="w-full text-xs px-2 py-1.5 rounded border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-200 mb-2"
-                                onChange={handlePresetChange}
-                                defaultValue=""
-                            >
-                                <option value="" disabled>Load Demo Profile...</option>
-                                {rootFindingPresets.map((preset, idx) => (
-                                    <option key={idx} value={preset.name}>{preset.name}</option>
-                                ))}
-                            </select>
-
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Function f(x)</label>
-                                <input type="text" name="func" value={inputs.func} onChange={handleInputChange} placeholder="x^3 - x - 2" className={'w-full text-sm px-3 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white'} />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Derivative f'(x) <span className="text-slate-400 font-normal">(Newton)</span></label>
-                                <input type="text" name="deriv" value={inputs.deriv} onChange={handleInputChange} placeholder="3*x^2 - 1" className={'w-full text-sm px-3 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white'} />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/50">
-                                <div>
-                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Lower / x₀</label>
-                                    <input type="number" name="lowerBound" value={inputs.lowerBound} onChange={(e) => { handleInputChange(e); setInputs(p => ({ ...p, initialGuess: e.target.value })) }} className={'w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white'} />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Upper / x₁</label>
-                                    <input type="number" name="upperBound" value={inputs.upperBound} onChange={(e) => { handleInputChange(e); setInputs(p => ({ ...p, secondGuess: e.target.value })) }} className={'w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white'} />
-                                </div>
-                            </div>
-
-                            <div className="pt-1 border-t border-slate-200 dark:border-slate-700/50">
-                                <label className="block text-xs font-semibold text-amber-700 dark:text-amber-500 mb-1">Known Exact Root (Optional)</label>
-                                <input type="number" name="exactRoot" value={inputs.exactRoot} onChange={handleInputChange} placeholder="e.g. 1.5213..." className={'w-full text-sm px-3 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-amber-50/20 dark:bg-amber-900/10 dark:text-white'} />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2 pt-1">
-                                <div>
-                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Tolerance</label>
-                                    <input type="text" name="tolerance" value={inputs.tolerance} onChange={handleInputChange} className={'w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white'} />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Max Iters</label>
-                                    <input type="number" name="maxIterations" value={inputs.maxIterations} onChange={handleInputChange} className={'w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white'} />
-                                </div>
-                            </div>
+                            {activeCategory === CATEGORIES.ROOT_FINDING && (
+                                <RootFindingConfig inputs={inputs} handleInputChange={handleInputChange} setInputs={setInputs} setErrorMsg={setErrorMsg} />
+                            )}
+                            {activeCategory === CATEGORIES.INTEGRATION && (
+                                <IntegrationConfig inputs={inputs} handleInputChange={handleInputChange} setInputs={setInputs} setErrorMsg={setErrorMsg} />
+                            )}
+                            {activeCategory === CATEGORIES.DIFFERENTIATION && (
+                                <DifferentiationConfig inputs={inputs} handleInputChange={handleInputChange} setInputs={setInputs} setErrorMsg={setErrorMsg} />
+                            )}
                         </CardContent>
                     </Card>
 
@@ -238,67 +270,115 @@ const Compare = () => {
 
                 {/* Main Results Area */}
                 <div className="lg:col-span-3 space-y-6">
-
-                    {/* Empty State */}
                     {!comparisonResult && !isCalculating && (
                         <div className="flex flex-col items-center justify-center p-12 h-64 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/20 text-center">
                             <span className="text-slate-400 dark:text-slate-500 mb-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                             </span>
                             <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">No Comparison Actively Processed</h3>
-                            <p className="text-sm text-slate-500 max-w-sm mt-1">Configure your problem parameters on the left and select algorithms to generate comparative analytics.</p>
+                            <p className="text-sm text-slate-500 max-w-sm mt-1">Select a category above, configure parameters, and run the calculation.</p>
                         </div>
                     )}
 
-                    {/* Result Content */}
                     {comparisonResult && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
 
                             {/* Ranking Card Strip */}
                             {rankings && !rankings.error && (
-                                <MethodRanking rankings={rankings} />
+                                <MethodRanking rankings={rankings} category={activeCategory} />
                             )}
 
                             {/* Summary Text Panel */}
                             <Card>
-                                <CardHeader className="bg-slate-100/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 pb-3"><CardTitle>Comparison Summary</CardTitle></CardHeader>
+                                <CardHeader className="bg-slate-100/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 pb-3">
+                                    <CardTitle className="flex justify-between items-center">
+                                        <span>Comparison Summary</span>
+                                        <Button variant="outline" size="sm" onClick={handleSave}>
+                                            Save Comparison
+                                        </Button>
+                                    </CardTitle>
+                                </CardHeader>
                                 <CardContent className="pt-4">
-                                    <ComparisonSummary results={comparisonResult.data} exactRootAvailable={comparisonResult.exactRootAvailable} />
+                                    <ComparisonSummary results={comparisonResult.data} hasExactReference={comparisonResult.hasExactReference} category={activeCategory} />
                                 </CardContent>
                             </Card>
 
                             {/* Dense Table */}
                             <Card>
                                 <CardHeader className="bg-slate-100/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 pb-3"><CardTitle>Normalized Comparison Matrix</CardTitle></CardHeader>
-                                <ComparisonTable results={comparisonResult.data} />
+                                <ComparisonTable results={comparisonResult.data} category={activeCategory} />
                             </Card>
 
                             {/* Charts Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Card className="md:col-span-2 text-center">
-                                    <CardHeader className="pb-2"><CardTitle className="justify-center">Convergence Pattern (Iteration vs Log Error)</CardTitle></CardHeader>
-                                    <CardContent className="pt-2">
-                                        <ConvergenceChart data={convergenceData} methods={methods} />
-                                    </CardContent>
-                                </Card>
 
-                                <Card>
-                                    <CardHeader className="pb-2"><CardTitle className="justify-center text-sm font-bold">Iterations Required</CardTitle></CardHeader>
-                                    <CardContent><IterationChart results={comparisonResult.data} /></CardContent>
-                                </Card>
+                                {activeCategory === CATEGORIES.ROOT_FINDING && (
+                                    <>
+                                        <div className="md:col-span-2">
+                                            <ChartCard
+                                                title="Convergence Pattern"
+                                                description="Displays Iteration Count against Absolute Error bounds on a logarithmic scale."
+                                                isEmpty={!convergenceData || convergenceData.length === 0}
+                                                emptyMessage="Convergence bounds iteration tracking dynamically maps execution."
+                                            >
+                                                <ConvergenceLineChart data={convergenceData} selectedMethods={methods.filter(m => m.selected)} />
+                                            </ChartCard>
+                                        </div>
+                                        <ChartCard
+                                            title="Iterations Required"
+                                            description="Comparison of total execution iterations required to reach parameters."
+                                            isEmpty={!comparisonResult || Object.keys(comparisonResult.data).length === 0}
+                                        >
+                                            <MethodComparisonBarChart
+                                                data={createIterationDataset(comparisonResult.data, methods.filter(m => m.selected))}
+                                                dataKey="iterations"
+                                                name="Iterations"
+                                                yLabel="Iterations"
+                                            />
+                                        </ChartCard>
+                                    </>
+                                )}
 
-                                <Card>
-                                    <CardHeader className="pb-2"><CardTitle className="justify-center text-sm font-bold">Execution Timings</CardTitle></CardHeader>
-                                    <CardContent><TimeChart results={comparisonResult.data} /></CardContent>
-                                </Card>
+                                {(activeCategory === CATEGORIES.INTEGRATION || activeCategory === CATEGORIES.DIFFERENTIATION) && (
+                                    <ChartCard
+                                        title="Value Approximation"
+                                        description="Direct mapping of evaluated numerical estimates vs method formulation."
+                                        isEmpty={!comparisonResult || Object.keys(comparisonResult.data).length === 0}
+                                    >
+                                        <MethodComparisonBarChart
+                                            data={createValueComparisonDataset(comparisonResult.data, methods.filter(m => m.selected))}
+                                            dataKey="value"
+                                            name="Approximation"
+                                            formatter={(v) => v.toExponential ? v.toExponential(4) : v}
+                                        />
+                                    </ChartCard>
+                                )}
 
-                                <Card className="md:col-span-2">
-                                    <CardHeader className="pb-2"><CardTitle className="justify-center text-sm font-bold">Accuracy / End Residual (Log)</CardTitle></CardHeader>
-                                    <CardContent><ErrorChart results={comparisonResult.data} exactRootAvailable={comparisonResult.exactRootAvailable} /></CardContent>
-                                </Card>
+                                <ChartCard
+                                    title="Execution Speed"
+                                    description="Physical execution runtime comparisons (ms). Tiny disparities fluctuate based on JIT JS optimization."
+                                    isEmpty={!comparisonResult || Object.keys(comparisonResult.data).length === 0}
+                                    footerNote="Execution time is measured in the current JavaScript runtime and can vary significantly."
+                                >
+                                    <PerformanceChart data={createPerformanceDataset(comparisonResult.data, methods.filter(m => m.selected))} />
+                                </ChartCard>
+
+                                <div className="md:col-span-2">
+                                    <ChartCard
+                                        title={comparisonResult.hasExactReference ? "Absolute Error bounds" : "Residual Error Formulations"}
+                                        description="Maps distance parameters on Logarithmic scales avoiding arbitrary truncations."
+                                        isEmpty={!comparisonResult || Object.keys(comparisonResult.data).length === 0 || createErrorDataset(comparisonResult.data, methods.filter(m => m.selected), comparisonResult.hasExactReference, activeCategory).length === 0}
+                                        emptyMessage={activeCategory === CATEGORIES.ROOT_FINDING ? "No valid errors mapped." : "Accuracy comparison requires a known exact/reference value."}
+                                    >
+                                        <ErrorComparisonChart
+                                            data={createErrorDataset(comparisonResult.data, methods.filter(m => m.selected), comparisonResult.hasExactReference, activeCategory)}
+                                            isExact={comparisonResult.hasExactReference}
+                                        />
+                                    </ChartCard>
+                                </div>
                             </div>
 
-                            {/* Drill-down Step Explainer */}
+                            {/* Details expander */}
                             <Card className="border-indigo-100 dark:border-indigo-900">
                                 <CardHeader className="bg-indigo-50/50 dark:bg-indigo-900/10 border-b border-indigo-100 dark:border-indigo-900/30">
                                     <CardTitle>Method Specific Logs</CardTitle>
@@ -317,41 +397,18 @@ const Compare = () => {
                                         ))}
                                     </div>
 
-                                    {expandedMethod && comparisonResult.data[expandedMethod] && comparisonResult.data[expandedMethod].steps.length > 0 && (
-                                        <div className="overflow-x-auto rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm animate-in fade-in slide-in-from-top-2">
-                                            <div className="p-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
-                                                <span className="font-bold text-sm text-slate-800 dark:text-slate-200">{comparisonResult.data[expandedMethod].name} Trajectory Trace</span>
-                                                {comparisonResult.data[expandedMethod].converged ? <Badge variant="success" className="text-xs">Identified Root: {formatNumber(comparisonResult.data[expandedMethod].root)}</Badge> : <Badge variant="danger" className="text-xs">Failed or Max Traversals Hit</Badge>}
-                                            </div>
-                                            <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
-                                                <thead>
-                                                    <tr className="bg-slate-50/80 dark:bg-slate-900">
-                                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Iter</th>
-                                                        <th className="px-3 py-2 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider bg-indigo-50/40 dark:bg-indigo-900/20">Approx Root</th>
-                                                        <th className="px-3 py-2 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Iter Error</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                                                    {comparisonResult.data[expandedMethod].steps.map((step, idx) => {
-                                                        let approxRoot;
-                                                        if (expandedMethod === 'bisection' || expandedMethod === 'regulaFalsi') approxRoot = step.c;
-                                                        else if (expandedMethod === 'newtonRaphson' || expandedMethod === 'secant') approxRoot = step.nextX;
+                                    {expandedMethod && comparisonResult.data[expandedMethod] && (
+                                        <div className="overflow-x-auto rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm animate-in fade-in slide-in-from-top-2 p-4">
+                                            <h4 className="font-bold text-md mb-2">{comparisonResult.data[expandedMethod].name} Details</h4>
+                                            <p className="text-sm">Status: <Badge variant={comparisonResult.data[expandedMethod].status === 'success' || comparisonResult.data[expandedMethod].converged ? 'success' : 'warning'}>{comparisonResult.data[expandedMethod].status}</Badge></p>
+                                            <p className="text-sm font-mono mt-2">Result: {formatNumber(comparisonResult.data[expandedMethod].resultValue)}</p>
+                                            <p className="text-sm font-mono">Exec Time: {formatNumber(comparisonResult.data[expandedMethod].executionTime, 4)} ms</p>
 
-                                                        return (
-                                                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                                                                <td className="px-3 py-1.5 text-sm font-medium text-slate-900 dark:text-slate-100">{step.iteration}</td>
-                                                                <td className="px-3 py-1.5 text-sm text-right text-indigo-700 dark:text-indigo-400 font-mono font-semibold bg-indigo-50/10 dark:bg-indigo-900/10">{formatNumber(approxRoot)}</td>
-                                                                <td className="px-3 py-1.5 text-sm text-right text-slate-500 dark:text-slate-400 font-mono">{step.error !== null ? formatNumber(step.error) : '---'}</td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
+                                            {/* Could conditionally render steps here if available */}
                                         </div>
                                     )}
                                 </CardContent>
                             </Card>
-
                         </div>
                     )}
                 </div>

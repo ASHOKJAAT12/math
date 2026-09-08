@@ -2,10 +2,21 @@ import React from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const METHOD_COLORS = {
+    // Root Finding
     bisection: "#3b82f6",      // Blue
     regulaFalsi: "#f59e0b",    // Amber
     newtonRaphson: "#10b981",  // Emerald
-    secant: "#8b5cf6"          // Violet
+    secant: "#8b5cf6",         // Violet
+
+    // Integration
+    trapezoidal: "#6366f1",    // Indigo
+    simpson13: "#0ea5e9",      // Sky
+    simpson38: "#ec4899",      // Pink
+
+    // Differentiation
+    forward: "#f43f5e",        // Rose
+    backward: "#d946ef",       // Fuchsia
+    central: "#8b5cf6"         // Violet
 };
 
 export const ConvergenceChart = ({ data, methods }) => {
@@ -55,9 +66,9 @@ export const ConvergenceChart = ({ data, methods }) => {
 };
 
 export const IterationChart = ({ results }) => {
-    const data = Object.values(results).filter(m => m.valid && m.converged).map(m => ({
+    const data = Object.values(results).filter(m => m.valid && (m.converged || m.status === 'success' || m.status === 'Converged')).map(m => ({
         name: m.name,
-        iterations: m.iterations,
+        iterations: m.iterations || m.resultParam, // Map to resultParam if no iterations
         fill: METHOD_COLORS[m.id]
     }));
 
@@ -79,10 +90,10 @@ export const IterationChart = ({ results }) => {
 };
 
 export const TimeChart = ({ results }) => {
-    const data = Object.values(results).filter(m => m.valid && m.converged).map(m => ({
+    const data = Object.values(results).filter(m => m.valid && (m.converged || m.status === 'success' || m.status === 'Converged')).map(m => ({
         name: m.name,
         time: m.executionTime,
-        fill: METHOD_COLORS[m.id]
+        fill: METHOD_COLORS[m.id] || "#94a3b8"
     }));
 
     if (!data || data.length === 0) return null;
@@ -102,12 +113,18 @@ export const TimeChart = ({ results }) => {
     );
 };
 
-export const ErrorChart = ({ results, exactRootAvailable }) => {
-    const data = Object.values(results).filter(m => m.valid && m.converged).map(m => ({
-        name: m.name,
-        error: exactRootAvailable ? m.absoluteError : m.finalError,
-        fill: METHOD_COLORS[m.id]
-    }));
+export const ErrorChart = ({ results, hasExactReference, category }) => {
+    const data = Object.values(results).filter(m => m.valid && (m.converged || m.status === 'success' || m.status === 'Converged')).map(m => {
+        let errVal = hasExactReference ? m.absoluteError : m.finalError;
+        // In case it's not rootfinding and no exact reference is provided, there is no finalError
+        if (errVal === undefined || errVal === null) errVal = 1e-16; // small dummy value to avoid breaking log scale completely if missing
+
+        return {
+            name: m.name,
+            error: errVal,
+            fill: METHOD_COLORS[m.id] || "#94a3b8"
+        };
+    });
 
     if (!data || data.length === 0) return null;
 
@@ -118,8 +135,8 @@ export const ErrorChart = ({ results, exactRootAvailable }) => {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
                     <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} />
                     <YAxis scale="log" domain={['auto', 'auto']} tick={{ fill: '#64748b', fontSize: 12 }} />
-                    <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} formatter={(v) => [v.toExponential(4), exactRootAvailable ? 'Absolute Error' : 'Iterative Residual']} contentStyle={{ borderRadius: '8px' }} />
-                    <Bar dataKey="error" name={exactRootAvailable ? "Abs Error (Log Scale)" : "Residual Error (Log Scale)"} radius={[4, 4, 0, 0]} />
+                    <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} formatter={(v) => [v.toExponential(4), hasExactReference ? 'Absolute Error' : (category === 'rootFinding' ? 'Iterative Residual' : 'Dummy Error')]} contentStyle={{ borderRadius: '8px' }} />
+                    <Bar dataKey="error" name={hasExactReference ? "Abs Error (Log Scale)" : "Residual Error (Log Scale)"} radius={[4, 4, 0, 0]} />
                 </BarChart>
             </ResponsiveContainer>
         </div>

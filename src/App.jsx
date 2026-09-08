@@ -10,6 +10,7 @@ import Integration from './pages/Integration';
 import Differentiation from './pages/Differentiation';
 import Compare from './pages/Compare';
 import History from './pages/History';
+import Report from './pages/Report';
 import About from './pages/About';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
               <Route path="/differentiation" element={<Differentiation />} />
               <Route path="/compare" element={<Compare />} />
               <Route path="/history" element={<History />} />
+              <Route path="/report/:id" element={<Report />} />
               <Route path="/about" element={<About />} />
             </Routes>
           </main>
