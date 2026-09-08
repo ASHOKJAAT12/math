@@ -28,3 +28,20 @@ export const isValidIterationCount = (count) => {
     const num = parseInt(count, 10);
     return num > 0 && num <= 10000;
 };
+
+/**
+ * Validates a bracketing interval for methods like Bisection and Regula Falsi.
+ * @returns {object} { isValid: boolean, message: string }
+ */
+export const validateBracket = (fA, fB) => {
+    if (!Number.isFinite(fA) || !Number.isFinite(fB)) {
+        return { isValid: false, message: 'Interval boundaries evaluate to non-finite values.' };
+    }
+    if (fA === 0 || fB === 0) {
+        return { isValid: true, message: 'An interval endpoint is already an exact root.' };
+    }
+    if (fA * fB > 0) {
+        return { isValid: false, message: 'The interval does not bracket a root (f(a) and f(b) have the same sign).' };
+    }
+    return { isValid: true, message: 'Valid bracket.' };
+};

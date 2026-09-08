@@ -1,0 +1,53 @@
+/**
+ * Centralized Metadata for Root Finding Methods
+ */
+export const rootFindingMetadata = [
+    {
+        id: 'bisection',
+        name: 'Bisection Method',
+        category: 'Bracketing',
+        requiresBracket: true,
+        requiresDerivative: false,
+        requiresOneInitialGuess: false,
+        requiresTwoInitialGuesses: false,
+        convergenceDescription: 'Guaranteed convergence but often very slow (linear convergence rates).',
+        formula: 'c = (a + b) / 2',
+        shortDescription: 'Splits the bracket interval perfectly in half iteratively.',
+    },
+    {
+        id: 'regulaFalsi',
+        name: 'Regula Falsi Method',
+        category: 'Bracketing',
+        requiresBracket: true,
+        requiresDerivative: false,
+        requiresOneInitialGuess: false,
+        requiresTwoInitialGuesses: false,
+        convergenceDescription: 'Always converges. Usually faster than Bisection but can be extremely slow if the curve is highly convex/concave near the root.',
+        formula: 'c = (a·f(b) - b·f(a)) / (f(b) - f(a))',
+        shortDescription: 'Uses a false position straight line to approximate the root in a bracketed region.',
+    },
+    {
+        id: 'newtonRaphson',
+        name: 'Newton-Raphson Method',
+        category: 'Open',
+        requiresBracket: false,
+        requiresDerivative: true,
+        requiresOneInitialGuess: true,
+        requiresTwoInitialGuesses: false,
+        convergenceDescription: 'Quadratic convergence (extremely fast) if the initial guess is close; diverges rapidly if guess is inadequate or derivative hits 0.',
+        formula: 'x_{n+1} = x_n - f(x_n)/f\'(x_n)',
+        shortDescription: 'A tangent-tracing open strategy that usually solves functions instantly when given a tight initial guess.',
+    },
+    {
+        id: 'secant',
+        name: 'Secant Method',
+        category: 'Open',
+        requiresBracket: false,
+        requiresDerivative: false,
+        requiresOneInitialGuess: false,
+        requiresTwoInitialGuesses: true,
+        convergenceDescription: 'Super-linear convergence. Generally fast, but does not guarantee convergence and requires two good initial guesses.',
+        formula: 'x_{n+1} = x_n - f(x_n)·(x_n - x_{n-1}) / (f(x_n) - f(x_{n-1}))',
+        shortDescription: 'Approximates the Newton derivative by looking back at the secant line from the pervious iteration.',
+    },
+];
