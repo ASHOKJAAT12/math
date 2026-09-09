@@ -3,10 +3,15 @@ import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../common/Card';
 import Button from '../common/Button';
 
-const ModuleCard = ({ title, description, methods = [], linkTo, buttonText }) => {
+const ModuleCard = ({ title, description, methods = [], linkTo, buttonText, Icon }) => {
     return (
-        <Card className="flex flex-col h-full hover:shadow-md transition-shadow">
-            <CardHeader>
+        <Card className="flex flex-col h-full hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1">
+            <CardHeader className="flex flex-row items-center gap-4">
+                {Icon && (
+                    <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
+                        <Icon size={24} />
+                    </div>
+                )}
                 <CardTitle>{title}</CardTitle>
             </CardHeader>
             <CardContent className="flex-1">

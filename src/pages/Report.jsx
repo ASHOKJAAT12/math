@@ -58,10 +58,12 @@ const Report = () => {
         else if (category === 'Numerical Integration') path = '/integration';
         else if (category === 'Numerical Differentiation') path = '/differentiation';
         else if (category === 'Comparison') path = '/compare';
+        else if (category === 'Advanced Analysis' || category === 'Advanced Experimental Analysis') path = '/advanced-analysis';
+        else if (category === 'Experimental Analysis') path = '/lab';
 
         // NOTE: Ideal approach is to pass state or query params.
         // For now, navigate back to the page. The user will manually re-enter or we could use session storage.
-        navigate(path);
+        if (path) navigate(path);
     };
 
     return (
@@ -90,7 +92,7 @@ const Report = () => {
                 {/* Header Section */}
                 <Card className="border-none shadow-none bg-transparent print:border-b print:rounded-none">
                     <div className="flex justify-between items-start mb-6">
-                        <div>
+                        <div className="space-y-3">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
                                 {operation}
                             </h1>
@@ -98,6 +100,20 @@ const Report = () => {
                                 <Badge variant="primary">{category}</Badge>
                                 <span>Report generated on {dateStr}</span>
                             </div>
+                            <h3 className="font-semibold text-slate-800 dark:text-white border-b pb-2">Analysis Results & Performance</h3>
+                            {operation === 'Comparison' ? (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded">
+                                        <span className="block text-xs text-slate-500 mb-1">Recommended Method</span>
+                                        <span className="font-semibold text-slate-900 dark:text-white">{resultSummary.bestMethod}</span>
+                                    </div>
+                                </div>
+                            ) : operation === 'Advanced Experiment' ? (
+                                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded">
+                                    <span className="block text-sm text-slate-500 mb-2">Advanced Parameter Experiment</span>
+                                    <p className="text-slate-900 dark:text-white">This report contains a parameter sensitivity sweep configuration. Review the raw JSON export for complete experimental data matrices.</p>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 </Card>

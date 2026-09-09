@@ -4,6 +4,7 @@ import SectionHeader from '../components/common/SectionHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import Input from '../components/common/Input';
 import { ChartCard, ConvergenceLineChart } from '../components/charts';
 
 import { bisection, regulaFalsi, newtonRaphson, secant, rootFindingMetadata } from '../methods/rootFinding/index.js';
@@ -236,36 +237,31 @@ const RootFinding = () => {
                         <CardContent className="space-y-4">
 
                             <div>
-                                <label htmlFor="func" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Function f(x)
-                                </label>
-                                <input
+                                <Input
                                     id="func"
                                     type="text"
                                     name="func"
+                                    label="Function f(x)"
                                     value={inputs.func}
                                     onChange={handleInputChange}
                                     placeholder="e.g., x^3 - x - 2"
-                                    className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 ${errors.func ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`}
+                                    error={errors.func}
                                 />
-                                {errors.func && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.func}</p>}
                             </div>
 
                             {currentMetadata.requiresDerivative && (
                                 <div>
-                                    <label htmlFor="deriv" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Derivative f'(x) <span className="text-slate-400 font-normal">(Optional, uses numerical fallback if blank)</span>
-                                    </label>
-                                    <input
+                                    <Input
                                         id="deriv"
                                         type="text"
                                         name="deriv"
+                                        label="Derivative f'(x)"
+                                        helperText="(Optional, uses numerical fallback if blank)"
                                         value={inputs.deriv}
                                         onChange={handleInputChange}
                                         placeholder="e.g., 3*x^2 - 1"
-                                        className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 ${errors.deriv ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`}
+                                        error={errors.deriv}
                                     />
-                                    {errors.deriv && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.deriv}</p>}
                                 </div>
                             )}
 
@@ -273,50 +269,36 @@ const RootFinding = () => {
                                 {currentMetadata.requiresBracket && (
                                     <>
                                         <div>
-                                            <label htmlFor="lowerBound" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Lower Bound a</label>
-                                            <input id="lowerBound" type="number" name="lowerBound" value={inputs.lowerBound} onChange={handleInputChange} placeholder="e.g., 1" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.lowerBound ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                            {errors.lowerBound && <p className="mt-1 text-xs text-red-600">{errors.lowerBound}</p>}
+                                            <Input id="lowerBound" type="number" name="lowerBound" label="Lower Bound a" value={inputs.lowerBound} onChange={handleInputChange} placeholder="e.g., 1" error={errors.lowerBound} />
                                         </div>
                                         <div>
-                                            <label htmlFor="upperBound" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Upper Bound b</label>
-                                            <input id="upperBound" type="number" name="upperBound" value={inputs.upperBound} onChange={handleInputChange} placeholder="e.g., 2" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.upperBound ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                            {errors.upperBound && <p className="mt-1 text-xs text-red-600">{errors.upperBound}</p>}
+                                            <Input id="upperBound" type="number" name="upperBound" label="Upper Bound b" value={inputs.upperBound} onChange={handleInputChange} placeholder="e.g., 2" error={errors.upperBound} />
                                         </div>
                                     </>
                                 )}
 
                                 {currentMetadata.requiresOneInitialGuess && (
                                     <div>
-                                        <label htmlFor="initialGuess" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Initial Guess x₀</label>
-                                        <input id="initialGuess" type="number" name="initialGuess" value={inputs.initialGuess} onChange={handleInputChange} placeholder="e.g., 1.5" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.initialGuess ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                        {errors.initialGuess && <p className="mt-1 text-xs text-red-600">{errors.initialGuess}</p>}
+                                        <Input id="initialGuess" type="number" name="initialGuess" label="Initial Guess x₀" value={inputs.initialGuess} onChange={handleInputChange} placeholder="e.g., 1.5" error={errors.initialGuess} />
                                     </div>
                                 )}
 
                                 {currentMetadata.requiresTwoInitialGuesses && (
                                     <>
                                         <div>
-                                            <label htmlFor="initialGuess2" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Initial Guess x₀</label>
-                                            <input id="initialGuess2" type="number" name="initialGuess" value={inputs.initialGuess} onChange={handleInputChange} placeholder="e.g., 1" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.initialGuess ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                            {errors.initialGuess && <p className="mt-1 text-xs text-red-600">{errors.initialGuess}</p>}
+                                            <Input id="initialGuess2" type="number" name="initialGuess" label="Initial Guess x₀" value={inputs.initialGuess} onChange={handleInputChange} placeholder="e.g., 1" error={errors.initialGuess} />
                                         </div>
                                         <div>
-                                            <label htmlFor="secondGuess" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Second Guess x₁</label>
-                                            <input id="secondGuess" type="number" name="secondGuess" value={inputs.secondGuess} onChange={handleInputChange} placeholder="e.g., 2" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.secondGuess ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                            {errors.secondGuess && <p className="mt-1 text-xs text-red-600">{errors.secondGuess}</p>}
+                                            <Input id="secondGuess" type="number" name="secondGuess" label="Second Guess x₁" value={inputs.secondGuess} onChange={handleInputChange} placeholder="e.g., 2" error={errors.secondGuess} />
                                         </div>
                                     </>
                                 )}
 
                                 <div>
-                                    <label htmlFor="tolerance" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tolerance</label>
-                                    <input id="tolerance" type="text" name="tolerance" value={inputs.tolerance} onChange={handleInputChange} placeholder="e.g., 1e-6" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.tolerance ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                    {errors.tolerance && <p className="mt-1 text-xs text-red-600">{errors.tolerance}</p>}
+                                    <Input id="tolerance" type="text" name="tolerance" label="Tolerance" value={inputs.tolerance} onChange={handleInputChange} placeholder="e.g., 1e-6" error={errors.tolerance} />
                                 </div>
                                 <div>
-                                    <label htmlFor="maxIter" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Max Iterations</label>
-                                    <input id="maxIter" type="number" name="maxIterations" value={inputs.maxIterations} onChange={handleInputChange} placeholder="e.g., 50" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.maxIterations ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                    {errors.maxIterations && <p className="mt-1 text-xs text-red-600">{errors.maxIterations}</p>}
+                                    <Input id="maxIter" type="number" name="maxIterations" label="Max Iterations" value={inputs.maxIterations} onChange={handleInputChange} placeholder="e.g., 50" error={errors.maxIterations} />
                                 </div>
                             </div>
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { METHOD_COLORS } from './ConvergenceLineChart';
 
 export const ErrorComparisonChart = ({ data, isExact = false }) => {
@@ -22,9 +22,9 @@ export const ErrorComparisonChart = ({ data, isExact = false }) => {
                     contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                     labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }}
                 />
-                <Bar dataKey="error" radius={[4, 4, 0, 0]}>
+                <Bar dataKey="error" radius={[4, 4, 0, 0]} fill="#ef4444">
                     {data.map((entry) => (
-                        <cell key={`cell-${entry.id}`} fill={METHOD_COLORS[entry.id] || "#ef4444"} />
+                        <Cell key={`cell-${entry.id}`} fill={METHOD_COLORS[entry.id] || "#ef4444"} />
                     ))}
                 </Bar>
             </BarChart>

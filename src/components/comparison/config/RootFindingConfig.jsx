@@ -1,5 +1,6 @@
 import React from 'react';
 import { rootFindingPresets } from '../../../data/rootFindingPresets.js';
+import Input from '../../common/Input';
 
 const RootFindingConfig = ({ inputs, handleInputChange, setInputs, setErrorMsg }) => {
 
@@ -39,38 +40,31 @@ const RootFindingConfig = ({ inputs, handleInputChange, setInputs, setErrorMsg }
             </select>
 
             <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Function f(x)</label>
-                <input type="text" name="func" value={inputs.func || ''} onChange={handleInputChange} placeholder="x^3 - x - 2" className="w-full text-sm px-3 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white" />
+                <Input type="text" name="func" label="Function f(x)" value={inputs.func || ''} onChange={handleInputChange} placeholder="x^3 - x - 2" className="mb-2" />
             </div>
             <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Derivative f'(x) <span className="text-slate-400 font-normal">(Newton)</span></label>
-                <input type="text" name="deriv" value={inputs.deriv || ''} onChange={handleInputChange} placeholder="3*x^2 - 1" className="w-full text-sm px-3 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white" />
+                <Input type="text" name="deriv" label="Derivative f'(x)" helperText="(Newton)" value={inputs.deriv || ''} onChange={handleInputChange} placeholder="3*x^2 - 1" className="mb-2" />
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/50">
                 <div>
-                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Lower / x₀</label>
-                    <input type="number" name="lowerBound" value={inputs.lowerBound || ''} onChange={(e) => { handleInputChange(e); setInputs(p => ({ ...p, initialGuess: e.target.value })) }} className="w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" />
+                    <Input type="number" name="lowerBound" label="Lower / x₀" value={inputs.lowerBound || ''} onChange={(e) => { handleInputChange(e); setInputs(p => ({ ...p, initialGuess: e.target.value })) }} />
                 </div>
                 <div>
-                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Upper / x₁</label>
-                    <input type="number" name="upperBound" value={inputs.upperBound || ''} onChange={(e) => { handleInputChange(e); setInputs(p => ({ ...p, secondGuess: e.target.value })) }} className="w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" />
+                    <Input type="number" name="upperBound" label="Upper / x₁" value={inputs.upperBound || ''} onChange={(e) => { handleInputChange(e); setInputs(p => ({ ...p, secondGuess: e.target.value })) }} />
                 </div>
             </div>
 
             <div className="pt-1 border-t border-slate-200 dark:border-slate-700/50">
-                <label className="block text-xs font-semibold text-amber-700 dark:text-amber-500 mb-1">Known Exact Root (Optional)</label>
-                <input type="number" name="exactRoot" value={inputs.exactRoot || ''} onChange={handleInputChange} placeholder="e.g. 1.5213..." className="w-full text-sm px-3 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-amber-50/20 dark:bg-amber-900/10 dark:text-white" />
+                <Input type="number" name="exactRoot" label="Known Exact Root" helperText="(Optional)" value={inputs.exactRoot || ''} onChange={handleInputChange} placeholder="e.g. 1.5213..." />
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-1">
                 <div>
-                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Tolerance</label>
-                    <input type="text" name="tolerance" value={inputs.tolerance || '1e-6'} onChange={handleInputChange} className="w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" />
+                    <Input type="text" name="tolerance" label="Tolerance" value={inputs.tolerance || '1e-6'} onChange={handleInputChange} />
                 </div>
                 <div>
-                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Max Iters</label>
-                    <input type="number" name="maxIterations" value={inputs.maxIterations || '50'} onChange={handleInputChange} className="w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" />
+                    <Input type="number" name="maxIterations" label="Max Iters" value={inputs.maxIterations || '50'} onChange={handleInputChange} />
                 </div>
             </div>
         </div>

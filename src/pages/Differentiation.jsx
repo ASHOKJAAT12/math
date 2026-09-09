@@ -4,6 +4,7 @@ import SectionHeader from '../components/common/SectionHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import Input from '../components/common/Input';
 
 import { forwardDifference, backwardDifference, centralDifference, diffMetadata } from '../methods/differentiation/index.js';
 import { analyzeStepSizes } from '../analysis/differentiation/errorVsStepSize.js';
@@ -244,35 +245,48 @@ const Differentiation = () => {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <label htmlFor="func" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Function f(x)
-                                </label>
-                                <input
-                                    id="func" type="text" name="func" value={inputs.func} onChange={handleInputChange} placeholder="e.g., x^3"
-                                    className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.func ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`}
+                                <Input
+                                    id="func"
+                                    type="text"
+                                    name="func"
+                                    label="Function f(x)"
+                                    value={inputs.func}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g., x^3"
+                                    error={errors.func}
                                 />
-                                {errors.func && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.func}</p>}
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                 <div>
-                                    <label htmlFor="x" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Evaluation Point (x)</label>
-                                    <input id="x" type="number" name="x" value={inputs.x} onChange={handleInputChange} placeholder="e.g., 2" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.x ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                    {errors.x && <p className="mt-1 text-xs text-red-600">{errors.x}</p>}
+                                    <Input id="x" type="number" name="x" label="Evaluation Point (x)" value={inputs.x} onChange={handleInputChange} placeholder="e.g., 2" error={errors.x} />
                                 </div>
                                 <div>
-                                    <label htmlFor="h" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Step Size (h)
-                                    </label>
-                                    <input id="h" type="number" name="h" step="0.001" value={inputs.h} onChange={handleInputChange} placeholder="e.g., 0.01" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.h ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                    {errors.h ? <p className="mt-1 text-xs text-red-600">{errors.h}</p> : <p className="mt-1 text-xs text-slate-500">Smaller h does not always mean smaller numerical error because floating-point round-off can become important.</p>}
+                                    <Input
+                                        id="h"
+                                        type="number"
+                                        name="h"
+                                        step="0.001"
+                                        label="Step Size (h)"
+                                        helperText="Smaller h = more truncation accuracy but more round-off."
+                                        value={inputs.h}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 0.01"
+                                        error={errors.h}
+                                    />
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label htmlFor="exactDerivative" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Exact Derivative f'(x) <span className="text-slate-400 font-normal">(Optional function or value)</span>
-                                    </label>
-                                    <input id="exactDerivative" type="text" name="exactDerivative" value={inputs.exactDerivative} onChange={handleInputChange} placeholder="e.g., 3*x^2 or 12" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.exactDerivative ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                    {errors.exactDerivative && <p className="mt-1 text-xs text-red-600">{errors.exactDerivative}</p>}
+                                    <Input
+                                        id="exactDerivative"
+                                        type="text"
+                                        name="exactDerivative"
+                                        label="Exact Derivative f'(x)"
+                                        helperText="(Optional function or value)"
+                                        value={inputs.exactDerivative}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 3*x^2 or 12"
+                                        error={errors.exactDerivative}
+                                    />
                                 </div>
                             </div>
 

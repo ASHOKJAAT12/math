@@ -4,6 +4,7 @@ import SectionHeader from '../components/common/SectionHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import Input from '../components/common/Input';
 import { ChartCard, ErrorComparisonChart } from '../components/charts';
 
 import { trapezoidal, simpson13, simpson38, integrationMetadata } from '../methods/integration/index.js';
@@ -212,45 +213,30 @@ const Integration = () => {
                         <CardContent className="space-y-4">
 
                             <div>
-                                <label htmlFor="func" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Function f(x)
-                                </label>
-                                <input
+                                <Input
                                     id="func"
                                     type="text"
                                     name="func"
+                                    label="Function f(x)"
                                     value={inputs.func}
                                     onChange={handleInputChange}
                                     placeholder="e.g., x^2"
-                                    className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 ${errors.func ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`}
+                                    error={errors.func}
                                 />
-                                {errors.func && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.func}</p>}
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                 <div>
-                                    <label htmlFor="lowerBound" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Lower Limit (a)</label>
-                                    <input id="lowerBound" type="number" name="lowerBound" value={inputs.lowerBound} onChange={handleInputChange} placeholder="e.g., 0" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.lowerBound ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                    {errors.lowerBound && <p className="mt-1 text-xs text-red-600">{errors.lowerBound}</p>}
+                                    <Input id="lowerBound" type="number" name="lowerBound" label="Lower Limit (a)" value={inputs.lowerBound} onChange={handleInputChange} placeholder="e.g., 0" error={errors.lowerBound} />
                                 </div>
                                 <div>
-                                    <label htmlFor="upperBound" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Upper Limit (b)</label>
-                                    <input id="upperBound" type="number" name="upperBound" value={inputs.upperBound} onChange={handleInputChange} placeholder="e.g., 1" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.upperBound ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                    {errors.upperBound && <p className="mt-1 text-xs text-red-600">{errors.upperBound}</p>}
+                                    <Input id="upperBound" type="number" name="upperBound" label="Upper Limit (b)" value={inputs.upperBound} onChange={handleInputChange} placeholder="e.g., 1" error={errors.upperBound} />
                                 </div>
                                 <div>
-                                    <label htmlFor="n" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Number of Subintervals (n)
-                                    </label>
-                                    <input id="n" type="number" name="n" value={inputs.n} onChange={handleInputChange} placeholder="e.g., 6" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.n ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                    {errors.n && <p className="mt-1 text-xs text-red-600">{errors.n}</p>}
+                                    <Input id="n" type="number" name="n" label="Number of Subintervals (n)" value={inputs.n} onChange={handleInputChange} placeholder="e.g., 6" error={errors.n} />
                                 </div>
                                 <div>
-                                    <label htmlFor="exactValue" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Exact Value <span className="text-slate-400 font-normal">(Optional)</span>
-                                    </label>
-                                    <input id="exactValue" type="number" name="exactValue" value={inputs.exactValue} onChange={handleInputChange} placeholder="For error analysis" className={`w-full px-4 py-2 border rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white ${errors.exactValue ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`} />
-                                    {errors.exactValue && <p className="mt-1 text-xs text-red-600">{errors.exactValue}</p>}
+                                    <Input id="exactValue" type="number" name="exactValue" label="Exact Value" helperText="(Optional)" value={inputs.exactValue} onChange={handleInputChange} placeholder="For error analysis" error={errors.exactValue} />
                                 </div>
                             </div>
 

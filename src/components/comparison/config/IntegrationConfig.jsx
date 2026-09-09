@@ -1,5 +1,6 @@
 import React from 'react';
 import { integrationPresets } from '../../../data/integrationPresets.js';
+import Input from '../../common/Input';
 
 const IntegrationConfig = ({ inputs, handleInputChange, setInputs, setErrorMsg }) => {
 
@@ -35,29 +36,24 @@ const IntegrationConfig = ({ inputs, handleInputChange, setInputs, setErrorMsg }
             </select>
 
             <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Function f(x)</label>
-                <input type="text" name="func" value={inputs.func || ''} onChange={handleInputChange} placeholder="x^2" className="w-full text-sm px-3 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white" />
+                <Input type="text" name="func" label="Function f(x)" value={inputs.func || ''} onChange={handleInputChange} placeholder="x^2" className="mb-2" />
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/50">
                 <div>
-                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Lower Limit (a)</label>
-                    <input type="number" name="a" value={inputs.a || ''} onChange={handleInputChange} className="w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" />
+                    <Input type="number" name="a" label="Lower Limit (a)" value={inputs.a || ''} onChange={handleInputChange} />
                 </div>
                 <div>
-                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Upper Limit (b)</label>
-                    <input type="number" name="b" value={inputs.b || ''} onChange={handleInputChange} className="w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" />
+                    <Input type="number" name="b" label="Upper Limit (b)" value={inputs.b || ''} onChange={handleInputChange} />
                 </div>
             </div>
 
             <div className="pt-1 border-t border-slate-200 dark:border-slate-700/50">
-                <label className="block text-xs font-semibold text-amber-700 dark:text-amber-500 mb-1">Known Exact Integral (Optional)</label>
-                <input type="number" name="exactValue" value={inputs.exactValue || ''} onChange={handleInputChange} placeholder="e.g. 0.3333..." className="w-full text-sm px-3 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-amber-50/20 dark:bg-amber-900/10 dark:text-white" />
+                <Input type="number" name="exactValue" label="Known Exact Integral" helperText="(Optional)" value={inputs.exactValue || ''} onChange={handleInputChange} placeholder="e.g. 0.3333..." />
             </div>
 
             <div className="pt-1">
-                <label className="block text-xs text-slate-600 dark:text-slate-400 mb-0.5">Subintervals (n)</label>
-                <input type="number" name="n" value={inputs.n || '10'} onChange={handleInputChange} placeholder="Must be even or multiple of 3" className="w-full text-xs px-2 py-1.5 border rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" />
+                <Input type="number" name="n" label="Subintervals (n)" value={inputs.n || '10'} onChange={handleInputChange} placeholder="Must be even or multiple of 3" />
             </div>
         </div>
     );

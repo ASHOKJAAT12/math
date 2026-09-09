@@ -36,6 +36,16 @@ const HistoryCard = ({ calculation, onDelete, onViewReport }) => {
         failed = resultSummary.bestMethod === 'N/A';
     }
 
+    if (operation === 'Advanced Experiment') {
+        label = 'Experiment Status';
+        resultValue = 'Completed Suite';
+        failed = false;
+    } else if (category === 'Experimental Analysis') {
+        label = 'Lab Outcome';
+        resultValue = resultSummary.status;
+        failed = resultSummary.status === 'Failed';
+    }
+
     const formatResult = (val) => {
         if (typeof val === 'number') return formatNumber(val, 6);
         return val || '---';

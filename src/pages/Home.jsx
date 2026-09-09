@@ -4,6 +4,7 @@ import PageContainer from '../components/layout/PageContainer';
 import ModuleCard from '../components/home/ModuleCard';
 import FeatureSection from '../components/home/FeatureSection';
 import Button from '../components/common/Button';
+import { Target, Activity, Tangent } from 'lucide-react'; // Import icons
 
 const Home = () => {
     return (
@@ -39,6 +40,7 @@ const Home = () => {
                         methods={['Bisection', 'Regula Falsi', 'Newton-Raphson', 'Secant']}
                         linkTo="/root-finding"
                         buttonText="Open Root Finding"
+                        Icon={Target}
                     />
                     <ModuleCard
                         title="Numerical Integration"
@@ -46,6 +48,7 @@ const Home = () => {
                         methods={['Trapezoidal Rule', "Simpson's 1/3 Rule", "Simpson's 3/8 Rule"]}
                         linkTo="/integration"
                         buttonText="Open Integration"
+                        Icon={Activity}
                     />
                     <ModuleCard
                         title="Numerical Differentiation"
@@ -53,6 +56,7 @@ const Home = () => {
                         methods={['Forward Difference', 'Backward Difference', 'Central Difference']}
                         linkTo="/differentiation"
                         buttonText="Open Differentiation"
+                        Icon={Tangent}
                     />
                 </div>
             </div>

@@ -33,8 +33,8 @@ const FeatureSection = () => {
     return (
         <div className="py-12">
             <SectionHeader
-                title="Future Capabilities"
-                description="The following features are planned for future development phases to enhance the learning and analysis experience."
+                title="Educational Value & Analytics"
+                description="The platform offers the following analytical tools to enhance your learning and comparison experience."
             />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {FeaturesData.map((feature, idx) => (

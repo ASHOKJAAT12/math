@@ -13,6 +13,10 @@ const Navbar = () => {
         { name: 'Integration', path: '/integration' },
         { name: 'Differentiation', path: '/differentiation' },
         { name: 'Compare', path: '/compare' },
+        { name: 'Advanced Analysis', path: '/advanced-analysis' },
+        { name: 'Experiment Lab', path: '/lab' },
+        { name: 'Present', path: '/present' },
+        { name: 'Learn', path: '/learn' },
         { name: 'History', path: '/history' },
         { name: 'About', path: '/about' },
     ];
@@ -70,6 +74,8 @@ const Navbar = () => {
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="p-2 rounded-md text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 focus:outline-none"
+                            aria-expanded={isMobileMenuOpen}
+                            aria-label="Toggle mobile menu"
                         >
                             {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </button>
